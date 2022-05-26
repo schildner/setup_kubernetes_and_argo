@@ -48,7 +48,6 @@ argo submit --log s3-example-wf.yaml
 
 ![Workflow producing and consuming artifact on s3 storage](images/workflow-producing-and-consuming-artifact-on-s3-storage.png)
 
-
 ```bash
 # Also worth exploring advanced artifacts example...
 kubectl -n argo apply -f https://raw.githubusercontent.com/argoproj/argo-workflows/master/examples/artifacts-workflowtemplate.yaml
@@ -56,6 +55,8 @@ kubectl -n argo apply -f https://raw.githubusercontent.com/argoproj/argo-workflo
 # Submit it after uploading the workflow template to argo server
 argo submit --watch --from wftmpl/artifacts
 ```
+
+![Workflow producing various artifacts some of which may be visualized in Argo GUI](images/workflow-producing-png-json-txt-tgz-html.png)
 
 ## Minio via helm (alternative way to quick-start manifests)
 
