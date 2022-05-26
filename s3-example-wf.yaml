@@ -1,18 +1,27 @@
 # This is an example of a workflow producing an S3 output artifact which is saved to a hard-wired location. 
 # This is useful for workflows which want to publish results to a well known or pre-determined location.
 apiVersion: argoproj.io/v1alpha1
-kind: WorkflowTemplate
+kind: Workflow
 metadata:
-  name: s3-artifacts-example
+  generateName: s3-artifacts-example-
   namespace: argo
 spec:
-
-  
+  serviceAccountName: eduard
   securityContext:
-      runAsNonRoot: true
-      runAsUser: 8737
+    runAsNonRoot: true
+    runAsUser: 8737
 
+  # must complete in 8h (60 seconds)
+  activeDeadlineSeconds: 60
+  # keep workflows for 1d (86,400 seconds)
+  ttlStrategy:
+    secondsAfterCompletion: 86400
+  # delete all pods as soon as they complete
+  podGC:
+    strategy: OnPodCompletion
+    
   entrypoint: produce-consume-artifact
+
   templates:
   - name: produce-consume-artifact
     dag:
@@ -32,6 +41,13 @@ spec:
       - |
         whoami
         cowsay hello world | tee /tmp/hello_world.txt
+      resources:
+        requests:
+          cpu: 500m
+          memory: 64Mi
+        limits:
+          cpu: 500m
+          memory: 64Mi
     archiveLocation:
       archiveLogs: true
 
@@ -98,5 +114,12 @@ spec:
         whoami
         ls -l /tmp
         cat /tmp/hello_world.txt
+      resources:
+        requests:
+          cpu: 500m
+          memory: 64Mi
+        limits:
+          cpu: 500m
+          memory: 64Mi
     archiveLocation:
       archiveLogs: true
