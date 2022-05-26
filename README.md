@@ -44,9 +44,12 @@ kubectl -n argo port-forward deployment/minio 9001:9001
 ```bash
 # Submit the workflow and tail print logs until finished
 argo submit --log s3-example-wf.yaml
+```
 
-<img width="884" alt="workflow-producing-and-consuming-artifact-on-s3-storage" src="https://user-images.githubusercontent.com/752688/170572591-58cb8628-cad2-464b-ab18-1ec3a620d079.png">
+![Workflow producing and consuming artifact on s3 storage](images/workflow-producing-and-consuming-artifact-on-s3-storage.png)
 
+
+```bash
 # Also worth exploring advanced artifacts example...
 kubectl -n argo apply -f https://raw.githubusercontent.com/argoproj/argo-workflows/master/examples/artifacts-workflowtemplate.yaml
 
