@@ -33,13 +33,16 @@ echo "\nCopy paste the following to the Argo GUI Login field:\n"$(printf "%0.s-"
 
 # IN DIFFERENT TERMINAL: Set up port forwarding to make Argo GUI available at https://localhost:2746/workflows
 kubectl -n argo port-forward deployment/argo-server 2746:2746
+
+# IN YET ANOTHER TERMINAL: Set up port forwarding for minio to make its GUI available at http://localhost:9001
+kubectl -n argo port-forward deployment/minio 9001:9001
 ```
 
-Minio should be available at [localhost:9001](http://localhost:9001)
+## Minio via helm (alternative way to quick-start manifests)
 
-## Minio
+NOTE: MinIO is already included in the quick-start manifests.
 
-NOTE: MinIO is already included in the quick-start manifests. That means the following steps only necessary if Argo Workflows were not installed via quick-start manifests.
+The following steps only necessary if Argo Workflows were not installed via quick-start manifests.
 
 Follow Argo Workflows docs to install Minio [here](https://argoproj.github.io/argo-workflows/configure-artifact-repository/#configuring-minio) to have Artifacts configured.
 
