@@ -38,11 +38,17 @@ kubectl -n argo port-forward deployment/argo-server 2746:2746
 kubectl -n argo port-forward deployment/minio 9001:9001
 ```
 
-## Submit example workflow demonstrating s3 storage for artifacts
+## S3 storage artifacts examples
 
 ```bash
 # Submit the workflow and tail print logs until finished
 argo submit --log s3-example-wf.yaml
+
+# Also worth exploring advanced artifacts example...
+kubectl -n argo apply -f https://raw.githubusercontent.com/argoproj/argo-workflows/master/examples/artifacts-workflowtemplate.yaml
+
+# Submit it after uploading the workflow template to argo server
+argo submit --watch --from wftmpl/artifacts
 ```
 
 ## Minio via helm (alternative way to quick-start manifests)
