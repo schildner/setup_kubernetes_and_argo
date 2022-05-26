@@ -1,0 +1,102 @@
+# This is an example of a workflow producing an S3 output artifact which is saved to a hard-wired location. 
+# This is useful for workflows which want to publish results to a well known or pre-determined location.
+apiVersion: argoproj.io/v1alpha1
+kind: WorkflowTemplate
+metadata:
+  name: s3-artifacts-example
+  namespace: argo
+spec:
+
+  
+  securityContext:
+      runAsNonRoot: true
+      runAsUser: 8737
+
+  entrypoint: produce-consume-artifact
+  templates:
+  - name: produce-consume-artifact
+    dag:
+      tasks:
+      - name: produce-artifact
+        template: produce-artifact
+
+      - name: consume-artifact
+        template: consume-artifact
+        depends: produce-artifact
+
+  - name: produce-artifact
+    container:
+      image: docker/whalesay:latest
+      command: [sh, -c]
+      args: 
+      - |
+        whoami
+        cowsay hello world | tee /tmp/hello_world.txt
+    archiveLocation:
+      archiveLogs: true
+
+    outputs:
+      artifacts:
+      - name: message
+        path: /tmp/hello_world.txt
+        # It is possible to disable tar.gz automatic archiving by setting the archive strategy to 'none'.
+        archive:
+          none: {}
+        # Disabling archiving has the following limitations on S3:
+        #   symbolic links will not be uploaded, as S3 does not support the concept/file mode of symlinks.
+
+        s3:
+          # Use the corresponding endpoint depending on your S3 provider:
+          #   Minio: my-minio-endpoint.default:9000
+          endpoint: minio:9000
+          bucket: my-bucket
+          insecure: true
+          # Specify the bucket region. Note that if you want Argo to figure out this automatically,
+          # you can set additional statement policy that allows `s3:GetBucketLocation` action.
+          # For details, check out:
+          #   https://argoproj.github.io/argo-workflows/configure-artifact-repository/#configuring-aws-s3
+          #region: us-west-2
+
+          # NOTE: by default, output artifacts are automatically tarred and gzipped before saving.
+          # As a best practice, .tgz or .tar.gz should be suffixed into the key name 
+          # so the resulting object has an accurate file extension and mime-type. 
+          # If archive is set to 'none', then preserve the appropriate file extension for the key name
+          key: "{{workflow.name}}/hello_world.txt"
+
+          # accessKeySecret and secretKeySecret are secret selectors. It references the k8s secret
+          # named 'my-s3-credentials'. This secret is expected to have have the keys 'accessKey'
+          # and 'secretKey', containing the base64 encoded credentials to the bucket.
+          accessKeySecret:
+            name: my-minio-cred
+            key: accesskey
+          secretKeySecret:
+            name: my-minio-cred
+            key: secretkey
+
+  - name: consume-artifact
+    inputs:
+      artifacts:
+      - name: message
+        path: /tmp/hello_world.txt
+        s3:
+          endpoint: minio:9000
+          insecure: true
+          bucket: my-bucket
+          key: "{{workflow.name}}/hello_world.txt"
+          accessKeySecret:
+            name: my-minio-cred
+            key: accesskey
+          secretKeySecret:
+            name: my-minio-cred
+            key: secretkey
+
+    container:
+      image: debian:latest
+      command: [sh, -c]
+      args: 
+      - |
+        whoami
+        ls -l /tmp
+        cat /tmp/hello_world.txt
+    archiveLocation:
+      archiveLogs: true

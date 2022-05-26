@@ -1,0 +1,39 @@
+metadata:
+  name: dind-example
+  namespace: argo
+  labels:
+    workflows.argoproj.io/creator: system-serviceaccount-argo-eduard
+spec:
+  entrypoint: dind-sidecar-example
+
+  templates:
+    - name: dind-sidecar-example
+      container:
+        image: 'docker:19.03.13'
+        command: [sh, -c]
+        args:
+          - |
+            until docker ps; 
+            do
+              sleep 3
+            done;
+
+            docker run --rm debian:latest
+            cat /etc/os-release
+            
+            echo docker images...
+            docker images
+        env:
+          - name: DOCKER_HOST
+            value: 127.0.0.1
+
+      sidecars:
+        - name: dind
+          image: 'docker:19.03.13-dind'
+          command:
+            - dockerd-entrypoint.sh
+          env:
+            - name: DOCKER_TLS_CERTDIR
+          securityContext:
+            privileged: true
+          mirrorVolumeMounts: true
